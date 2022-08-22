@@ -1,0 +1,51 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  creationTimestamp: null
+  name: service-registry
+  namespace: service-registry
+spec:
+  params:
+  - name: git-revision
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      annotations:
+        build.appstudio.openshift.io/application: service-registry
+        build.appstudio.openshift.io/build: "true"
+        build.appstudio.openshift.io/component: service-registry
+        build.appstudio.openshift.io/type: build
+        build.appstudio.openshift.io/version: "0.1"
+        pipelines.appstudio.openshift.io/type: build
+      creationTimestamp: null
+      generateName: service-registry-
+      labels:
+        build.appstudio.openshift.io/application: service-registry
+        build.appstudio.openshift.io/build: "true"
+        build.appstudio.openshift.io/component: service-registry
+        build.appstudio.openshift.io/type: build
+        build.appstudio.openshift.io/version: "0.1"
+        pipelines.appstudio.openshift.io/type: build
+      namespace: service-registry
+    spec:
+      params:
+      - name: git-url
+        value: https://github.com/Apicurio/apicurio-registry
+      - name: output-image
+        value: quay.io/jduimovich0/service-registry:latest-$(tt.params.git-revision)
+      - name: revision
+        value: master
+      pipelineRef:
+        bundle: quay.io/redhat-appstudio/build-templates-bundle:5cc4c4afd4c28d8918975b29312e03d623492538
+        name: java-builder
+      workspaces:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: appstudio
+        subPath: service-registry/$(tt.params.git-revision)
+      - name: registry-auth
+        secret:
+          secretName: redhat-appstudio-registry-pull-secret
+    status: {}
+status: {}
